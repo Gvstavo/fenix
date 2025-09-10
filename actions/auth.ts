@@ -61,7 +61,7 @@ export async function registerUser(
 
 	  const result = await pool.query(insertQuery, values);
 	  const insertedId = result.rows[0].id;
-	  console.log("id criado: ",insertedId);
+	  //console.log("id criado: ",insertedId);
     
     await createSession({name: name, email: email, admin: false, id: insertedId});
     
@@ -86,7 +86,7 @@ export async function login(
   	const values = [email];
 
   	const result = await pool.query(query,values);
-  	console.log(result);
+  	//console.log(result);
   	if(result.rowCount == 1){
   		if(await bcrypt.compare(senha, result.rows[0].senha)){
   			    await createSession({email: email, admin:  result.rows[0].admin, id:  result.rows[0].id, name:  result.rows[0].nome});

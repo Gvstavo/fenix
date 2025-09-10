@@ -36,7 +36,20 @@ export const HeaderClient = ({ user }) => {
       >
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}><Link href="/" passHref><Image src="/logo-superior-fenix.webp" alt="Fênix Project Logo" width={180} height={50} style={{ objectFit: 'contain' }}/></Link></Box>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>{navItems.map((item) => (<Button key={item} sx={{ color: 'white', mx: 1, fontWeight: 'bold', textTransform: 'uppercase' }}>{item}</Button>))}</Box>
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>{navItems.map((item) => (<Button key={item} sx={{ color: 'white', mx: 1, fontWeight: 'bold', textTransform: 'uppercase' }}>{item}</Button>))}
+                        {user && user.admin && (
+              <Link 
+                href="/admin" 
+                target="_blank" // Abre em uma nova guia
+                rel="noopener noreferrer" // Boas práticas de segurança para target="_blank"
+                passHref
+              >
+                <Button sx={{ color: 'white', mx: 1, fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  Administração
+                </Button>
+              </Link>
+            )}
+          </Box>
           
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Search><SearchIconWrapper><SearchIcon /></SearchIconWrapper><StyledInputBase placeholder="Procurar…" inputProps={{ 'aria-label': 'search' }} /></Search>
