@@ -7,3 +7,9 @@ export interface Usuario {
     admin: boolean ;
     created_at: Date;
 }
+
+export interface Artista {
+    id: int;
+    nome: string;
+    slug?: string | null;
+}
