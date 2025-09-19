@@ -102,7 +102,7 @@ export function UsersTable({ users, totalCount }: UsersTableProps) {
   const searchParams = useSearchParams();
   
   // A página atual é lida da URL. O componente de paginação é 0-indexado.
-  const page = Number(searchParams.get('page')) - 1 || 0;
+  const page = (Number(searchParams.get('page')) || 1) - 1;
 
   // A função para mudar de página permanece a mesma
   const handleChangePage = (event: unknown, newPage: number) => {
