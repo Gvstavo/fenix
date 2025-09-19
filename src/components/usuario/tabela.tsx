@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -17,7 +17,15 @@ import {
   Toolbar,
   TextField,
   InputAdornment,
-  Chip
+  Chip,
+  Snackbar,
+  Alert,
+  type AlertColor,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -25,6 +33,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import { Usuario } from '@/src/models.tsx'; // Importando seu tipo Usuario
+import { deleteUser } from '@/actions/usuario.tsx'; // <-- 1. Importe a nova ação
 
 interface UsersTableProps {
   users: Usuario[];
@@ -35,6 +44,41 @@ interface UsersTableProps {
 const ITEMS_PER_PAGE = 20;
 
 export function UsersTable({ users, totalCount }: UsersTableProps) {
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<Usuario | null>(null);
+
+  const handleOpenDeleteDialog = (user: Usuario) => {
+    setUserToDelete(user);
+    setDialogOpen(true);
+  };
+
+  // Fecha o diálogo e limpa os dados do usuário
+  const handleCloseDeleteDialog = () => {
+    setDialogOpen(false);
+    setUserToDelete(null);
+  };
+
+  // Executa a exclusão quando o usuário confirma no diálogo
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+
+    const result = await deleteUser(userToDelete.id);
+    
+    setSnackbarMessage(result.message);
+    setSnackbarSeverity(result.success ? 'success' : 'error');
+    setSnackbarOpen(true);
+
+    handleCloseDeleteDialog(); // Fecha o diálogo após a ação
+  };
+
+  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  };
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -49,8 +93,7 @@ export function UsersTable({ users, totalCount }: UsersTableProps) {
   };
 
   const handleEdit = (id: string) => console.log(`Editar usuário com ID: ${id}`);
-  const handleDelete = (id: string) => console.log(`Excluir usuário com ID: ${id}`);
-  const handleCreate = () => console.log('Abrir formulário para criar novo usuário');
+   const handleCreate = () => console.log('Abrir formulário para criar novo usuário');
 
   return (
     <Box>
@@ -101,7 +144,7 @@ export function UsersTable({ users, totalCount }: UsersTableProps) {
                   </TableCell>
                   <TableCell align="right">
                     <IconButton size="small" onClick={() => handleEdit(user.id)}><EditIcon fontSize="small" /></IconButton>
-                    <IconButton size="small" onClick={() => handleDelete(user.id)}><DeleteIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" onClick={() => handleOpenDeleteDialog(user)}><DeleteIcon fontSize="small" /></IconButton>
                   </TableCell>
                 </TableRow>
               ))}
@@ -124,6 +167,38 @@ export function UsersTable({ users, totalCount }: UsersTableProps) {
           labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
         />
       </Paper>
+
+      <Snackbar open={snackbarOpen} autoHideDuration={1000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} variant="filled" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDeleteDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Confirmar Exclusão"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Tem certeza que deseja deletar permanentemente o usuário 
+            <strong>{` ${userToDelete?.nome || ''}`}</strong>? Esta ação não pode ser desfeita.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancelar</Button>
+          <Button onClick={handleConfirmDelete} autoFocus color="error">
+            Deletar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+
+
     </Box>
   );
 }

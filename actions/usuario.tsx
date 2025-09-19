@@ -3,6 +3,7 @@
 import { Pool } from 'pg';
 import { Usuario } from '@/src/models.tsx';
 import pool  from '@/src/db.ts';
+import { revalidatePath } from 'next/cache'
 const ITEMS_PER_PAGE = 20;
 
 export async function fetchUsersByPage(page: number): Promise<{ 
@@ -46,5 +47,27 @@ export async function fetchUsersByPage(page: number): Promise<{
       users: [],
       totalCount: 0,
     };
+  }
+}
+
+
+
+export async function deleteUser(id: int){
+  // Validação simples para garantir que o ID não está vazio
+  if (!id) {
+    return { success: false, message: 'ID do usuário é inválido.' };
+  }
+
+  try {
+    
+    const deleteQuery = 'DELETE FROM usuarios WHERE id = $1';
+    
+    await pool.query(deleteQuery, [id]);
+    revalidatePath('/admin/usuarios');
+
+    return { success: true, message: 'Usuário deletado com sucesso.' };
+  } catch (error) {
+    console.error('Erro de banco de dados ao deletar usuário:', error);
+    return { success: false, message: 'Falha ao deletar o usuário.' };
   }
 }
