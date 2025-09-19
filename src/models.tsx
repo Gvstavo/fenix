@@ -13,3 +13,9 @@ export interface Artista {
     nome: string;
     slug?: string | null;
 }
+
+export interface Autor {
+    id: int;
+    nome: string;
+    slug?: string | null;
+}

@@ -58,7 +58,7 @@ export async function fetchUsersByPage(page: number): Promise<{
         created_at,
         COUNT(*) OVER() AS total_count
       FROM usuarios
-      ORDER BY created_at DESC
+      ORDER BY nome ASC
       LIMIT $1 OFFSET $2;
     `;
 

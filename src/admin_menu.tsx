@@ -17,6 +17,7 @@ import MenuIcon from '@mui/icons-material/Menu'; // Para o ícone do "Hamburger"
 import LightModeIcon from '@mui/icons-material/LightMode'; // Para o tema claro
 import NightsStayIcon from '@mui/icons-material/NightsStay'; // Para o tema escuro
 import ColorLensIcon from '@mui/icons-material/ColorLens';
+import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import Link from 'next/link';
 
 // Definição da largura da sidebar para consistência
@@ -110,6 +111,32 @@ export function AdminSidebar() {
             <ListItemText primary="Artistas" />
           </ListItemButton>
         </Link>
+        <Link href="/admin/autores" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
+          <ListItemButton
+            selected={selectedIndex === 3}
+            onClick={(event) => handleListItemClick(event, 3)}
+            sx={{ 
+              borderRadius: '8px', 
+              mx: 1, 
+              '&.Mui-selected': { 
+                bgcolor: '#d1717c',
+                color: 'white',
+                '& .MuiListItemIcon-root': { color: 'white' },
+                '&:hover': { bgcolor: '#c1616c' }
+              },
+              '&.Mui-selected:hover': {
+                bgcolor: '#c1616c'
+              }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
+              <HistoryEduIcon />
+            </ListItemIcon>
+            <ListItemText primary="Autores" />
+          </ListItemButton>
+        </Link>
+
+
         {/* Adicione outros itens do menu aqui, se necessário */}
         {/*
         <Link href="/admin/dashboard" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
