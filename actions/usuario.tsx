@@ -36,14 +36,14 @@ export interface FormState {
 
 
 
-export async function fetchUsersByPage(page: number): Promise<{ 
+export async function fetchUsersByPage(page: number, query: string = ''): Promise<{ 
   users: Usuario[]; 
   totalCount: number; 
 }> {
   // Garante que o número da página seja pelo menos 1
   const currentPage = Math.max(page, 1);
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-
+  const searchQuery = `%${query}%`;
   try {
     
     // A query utiliza LIMIT e OFFSET para paginação e COUNT(*) OVER()
@@ -58,11 +58,12 @@ export async function fetchUsersByPage(page: number): Promise<{
         created_at,
         COUNT(*) OVER() AS total_count
       FROM usuarios
+      WHERE nome ILIKE $1
       ORDER BY nome ASC
-      LIMIT $1 OFFSET $2;
+      LIMIT $2 OFFSET $3;
     `;
 
-    const result = await pool.query(query, [ITEMS_PER_PAGE, offset]);
+    const result = await pool.query(query, [searchQuery,ITEMS_PER_PAGE, offset]);
 
 
     const users = result.rows as Usuario[];
