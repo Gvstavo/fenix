@@ -19,3 +19,9 @@ export interface Autor {
     nome: string;
     slug?: string | null;
 }
+
+export interface Genero {
+    id: int;
+    nome: string;
+    slug?: string | null;
+}
