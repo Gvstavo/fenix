@@ -4,6 +4,11 @@ import type { UserPayload } from "@/app/lib/session";
 import { getSession } from "@/app/lib/session";
 import { redirect } from "next/navigation";
 
+export const metadata: Metadata = {
+  title: "Painel de Controle | Fênix Project",
+  description: "Área de administração para gerenciar usuários, conteúdos e configurações do site Fênix Project.",
+};
+
 export default async function AdminRootLayout({
   children,
 }: {

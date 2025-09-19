@@ -34,7 +34,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import { Usuario } from '@/src/models.tsx'; // Importando seu tipo Usuario
 import { deleteUser } from '@/actions/usuario.tsx'; // <-- 1. Importe a nova ação
-
+import { UserFormModal } from './modal.tsx'; // <-- Importa o novo modal
 interface UsersTableProps {
   users: Usuario[];
   totalCount: number;
@@ -50,6 +50,25 @@ export function UsersTable({ users, totalCount }: UsersTableProps) {
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<Usuario | null>(null);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<Usuario | null>(null);
+
+  const handleOpenCreateModal = () => {
+    setEditingUser(null); // Limpa o usuário em edição (modo de criação)
+    setIsFormModalOpen(true);
+  };
+
+  const handleOpenEditModal = (user: Usuario) => {
+    setEditingUser(user); // Define o usuário para edição
+    setIsFormModalOpen(true);
+  };
+  
+  // Função de callback para o sucesso do formulário
+  const handleFormSuccess = (message: string) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
 
   const handleOpenDeleteDialog = (user: Usuario) => {
     setUserToDelete(user);
@@ -113,7 +132,7 @@ export function UsersTable({ users, totalCount }: UsersTableProps) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <TextField variant="outlined" size="small" placeholder="Pesquisar..." InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>), sx: { borderRadius: '20px', fontSize: '0.875rem' } }} />
           <IconButton title="Filtrar lista"><FilterListIcon /></IconButton>
-          <Button variant="contained" onClick={handleCreate} startIcon={<AddIcon />} sx={{ bgcolor: '#d1717c', borderRadius: '20px', px: 3, textTransform: 'none', fontWeight: 'bold', '&:hover': { bgcolor: '#b55a66' } }}>
+          <Button variant="contained" onClick={handleOpenCreateModal}  startIcon={<AddIcon />} sx={{ bgcolor: '#d1717c', borderRadius: '20px', px: 3, textTransform: 'none', fontWeight: 'bold', '&:hover': { bgcolor: '#b55a66' } }}>
             Criar
           </Button>
         </Box>
@@ -143,7 +162,7 @@ export function UsersTable({ users, totalCount }: UsersTableProps) {
                     {user.admin && <Chip label="Admin" size="small" sx={{ bgcolor: '#d1717c', color: 'white', fontWeight: 'bold' }} />}
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => handleEdit(user.id)}><EditIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" onClick={() => handleOpenEditModal(user)}><EditIcon fontSize="small" /></IconButton>
                     <IconButton size="small" onClick={() => handleOpenDeleteDialog(user)}><DeleteIcon fontSize="small" /></IconButton>
                   </TableCell>
                 </TableRow>
@@ -197,7 +216,14 @@ export function UsersTable({ users, totalCount }: UsersTableProps) {
         </DialogActions>
       </Dialog>
 
-
+      {isFormModalOpen && (
+        <UserFormModal
+          open={isFormModalOpen}
+          onClose={() => setIsFormModalOpen(false)}
+          onSuccess={handleFormSuccess}
+          editingUser={editingUser}
+        />
+      )}
 
     </Box>
   );

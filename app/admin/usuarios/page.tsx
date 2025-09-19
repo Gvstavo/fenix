@@ -17,10 +17,10 @@ export default async function AdminUsersPage({
     limit?: string;
   };
 }) {
-  const currentPage = Number(await searchParams?.page) || 1;
-  
+  //const currentPage = Number( searchParams?.page) || 1;
+  const {page} = await searchParams;
   // Chama a Server Action para buscar os dados da página atual
-  const { users, totalCount } = await fetchUsersByPage(currentPage);
+  const { users, totalCount } = await fetchUsersByPage(page);
 
   return (
     <Box>
