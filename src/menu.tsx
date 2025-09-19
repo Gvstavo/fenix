@@ -39,7 +39,7 @@ export const HeaderClient = ({ user }) => {
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>{navItems.map((item) => (<Button key={item} sx={{ color: 'white', mx: 1, fontWeight: 'bold', textTransform: 'uppercase' }}>{item}</Button>))}
                         {user && user.admin && (
               <Link 
-                href="/admin" 
+                href="/admin/usuarios" 
                 target="_blank" // Abre em uma nova guia
                 rel="noopener noreferrer" // Boas práticas de segurança para target="_blank"
                 passHref
