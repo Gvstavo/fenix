@@ -52,7 +52,20 @@ export function ArtistsTable({ artists, totalCount }: ArtistsTableProps) {
   const [artistToDelete, setArtistToDelete] = useState<Artista | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingArtist, setEditingArtist] = useState<Artista | null>(null);
-
+  const handleSearch = (term: string) => {
+    const params = new URLSearchParams(searchParams);
+    // Sempre volta para a primeira página ao fazer uma nova busca
+    params.set('page', '1'); 
+    
+    if (term) {
+      params.set('query', term);
+    } else {
+      params.delete('query'); // Remove o parâmetro se a busca estiver vazia
+    }
+    
+    // Atualiza a URL com os novos parâmetros
+    router.replace(`?${params.toString()}`);
+  };
   const handleOpenCreateModal = () => {
     setEditingArtist(null); // Limpa o usuário em edição (modo de criação)
     setIsFormModalOpen(true);
@@ -130,7 +143,25 @@ export function ArtistsTable({ artists, totalCount }: ArtistsTableProps) {
           Artistas
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <TextField variant="outlined" size="small" placeholder="Pesquisar..." InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>), sx: { borderRadius: '20px', fontSize: '0.875rem' } }} />
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Pesquisar por nome..."
+            // Define o valor padrão com base na URL, para que a busca persista no refresh
+            defaultValue={searchParams.get('query') || ''}
+            onChange={(e) => {
+              // Lógica de debouncing: espera 300ms antes de buscar
+              const timeoutId = setTimeout(() => {
+                handleSearch(e.target.value);
+              }, 300);
+              // Limpa o timeout anterior se o usuário continuar digitando
+              return () => clearTimeout(timeoutId);
+            }}
+            InputProps={{
+              startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>),
+              sx: { borderRadius: '20px', fontSize: '0.875rem' }
+            }}
+          />
           <IconButton title="Filtrar lista"><FilterListIcon /></IconButton>
           <Button variant="contained" onClick={handleOpenCreateModal}  startIcon={<AddIcon />} sx={{ bgcolor: '#d1717c', borderRadius: '20px', px: 3, textTransform: 'none', fontWeight: 'bold', '&:hover': { bgcolor: '#b55a66' } }}>
             Criar
