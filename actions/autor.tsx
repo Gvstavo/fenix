@@ -30,13 +30,14 @@ export interface FormState {
 
 
 
-export async function fetchAutoresByPage(page: number): Promise<{ 
+export async function fetchAutoresByPage(page: number,query: string = ''): Promise<{ 
   autores: Autor[]; 
   totalCount: number; 
 }> {
   // Garante que o número da página seja pelo menos 1
   const currentPage = Math.max(page, 1);
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  const searchQuery = `%${query}%`;
 
   try {
     
@@ -49,11 +50,12 @@ export async function fetchAutoresByPage(page: number): Promise<{
         slug,
         COUNT(*) OVER() AS total_count
       FROM autores
+      WHERE nome ILIKE $1
       ORDER BY nome ASC
-      LIMIT $1 OFFSET $2;
+      LIMIT $2 OFFSET $3;
     `;
 
-    const result = await pool.query(query, [ITEMS_PER_PAGE, offset]);
+    const result = await pool.query(query, [searchQuery,ITEMS_PER_PAGE, offset]);
 
 
     const autores = result.rows as Autor[];

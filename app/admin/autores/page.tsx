@@ -15,12 +15,14 @@ export default async function AdminAutoresPage({
   searchParams?: {
     page?: string;
     limit?: string;
+    query?: string;
+
   };
 }) {
   //const currentPage = Number( searchParams?.page) || 1;
-  const {page} = await searchParams;
+  const {page, query} = await searchParams;
   // Chama a Server Action para buscar os dados da página atual
-  const { autores, totalCount } = await fetchAutoresByPage(page  || 1);
+  const { autores, totalCount } = await fetchAutoresByPage(page  || 1, query);
 
   return (
     <Box>
