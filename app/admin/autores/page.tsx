@@ -6,7 +6,8 @@ import {
   Typography, 
 } from '@mui/material';
 import { fetchAutoresByPage } from '@/actions/autor.tsx';
-
+import { getSession } from "@/app/lib/session";
+import { redirect } from "next/navigation";
 
 export default async function AdminAutoresPage({
   searchParams,
@@ -19,7 +20,12 @@ export default async function AdminAutoresPage({
 
   };
 }) {
-  //const currentPage = Number( searchParams?.page) || 1;
+
+
+  const session = await getSession();
+  if (!session?.admin) {
+    redirect('/'); // Redireciona para a home se não for admin
+  }
   const {page, query} = await searchParams;
   // Chama a Server Action para buscar os dados da página atual
   const { autores, totalCount } = await fetchAutoresByPage(page  || 1, query);

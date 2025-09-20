@@ -16,8 +16,7 @@ export default async function AdminRootLayout({
 }) {
   // Proteção de rota no layout de admin
   const session = await getSession();
-
-  if (!session?.admin) {
+  if (!session?.admin && !session?.autor) {
     redirect('/'); // Redireciona para a home se não for admin
   }
 
@@ -25,7 +24,7 @@ export default async function AdminRootLayout({
     <>
         <Box sx={{ display: 'flex', height: '100vh', bgcolor: 'background.default' }}>
           {/* Menu Lateral */}
-          <AdminSidebar />
+          <AdminSidebar  userSession={session}/>
           
           {/* Conteúdo Principal da Administração */}
           <Box

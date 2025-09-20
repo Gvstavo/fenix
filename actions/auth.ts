@@ -49,7 +49,7 @@ export async function registerUser(
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     
-     const insertQuery = "INSERT INTO usuarios(email, senha, nome, url, admin, created_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id";
+     const insertQuery = "INSERT INTO usuarios(email, senha, nome, url, admin, autor,created_at) VALUES ($1, $2, $3, $4, $5, $6,NOW()) RETURNING id";
 
 	  const values = [
 	    email,
@@ -57,13 +57,14 @@ export async function registerUser(
 	    name,
 	   "default.webp", 
 	    false,
+      false
 	  ];
 
 	  const result = await pool.query(insertQuery, values);
 	  const insertedId = result.rows[0].id;
 	  //console.log("id criado: ",insertedId);
     
-    await createSession({name: name, email: email, admin: false, id: insertedId});
+    await createSession({name: name, email: email, admin: false, id: insertedId, autor: false});
     
     return { message: 'Cadastro realizado com sucesso!', success: true };
 
@@ -82,14 +83,14 @@ export async function login(
 
   try {
 
-  	const query = "SELECT email,senha,admin,id,nome FROM usuarios WHERE email = $1";
+  	const query = "SELECT email,senha,admin,id,nome,autor FROM usuarios WHERE email = $1";
   	const values = [email];
 
   	const result = await pool.query(query,values);
   	//console.log(result);
   	if(result.rowCount == 1){
   		if(await bcrypt.compare(senha, result.rows[0].senha)){
-  			    await createSession({email: email, admin:  result.rows[0].admin, id:  result.rows[0].id, name:  result.rows[0].nome});
+  			    await createSession({email: email, admin:  result.rows[0].admin, id:  result.rows[0].id, name:  result.rows[0].nome, autor: result.rows[0].autor});
     				return { message: 'login realizado com sucesso!', success: true };
   		}else return  { message: 'Senha incorrecta', success: false };
   	}else return  { message: 'email incorrecto', success: false };

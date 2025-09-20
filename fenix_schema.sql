@@ -131,3 +131,5 @@ CREATE INDEX ON manga_comentarios (manga_id);
 CREATE INDEX ON manga_comentarios (usuario_id);
 CREATE INDEX ON capitulo_comentarios (capitulo_id);
 CREATE INDEX ON capitulo_comentarios (usuario_id);
+
+ALTER TABLE usuarios ADD COLUMN autor BOOLEAN DEFAULT FALSE;

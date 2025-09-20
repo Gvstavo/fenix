@@ -178,6 +178,8 @@ export function UsersTable({ users, totalCount }: UsersTableProps) {
                 <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Data de Criação</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Admin</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Autor</TableCell>
+
                 <TableCell sx={{ fontWeight: 'bold', width: '120px' }} align="right">Ações</TableCell>
               </TableRow>
             </TableHead>
@@ -191,6 +193,9 @@ export function UsersTable({ users, totalCount }: UsersTableProps) {
                   </TableCell>
                   <TableCell>
                     {user.admin && <Chip label="Admin" size="small" sx={{ bgcolor: '#d1717c', color: 'white', fontWeight: 'bold' }} />}
+                  </TableCell>
+                  <TableCell>
+                    {user.autor && <Chip label="Autor" size="small" sx={{ bgcolor: '#d1717c', color: 'white', fontWeight: 'bold' }} />}
                   </TableCell>
                   <TableCell align="right">
                     <IconButton size="small" onClick={() => handleOpenEditModal(user)}><EditIcon fontSize="small" /></IconButton>

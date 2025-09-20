@@ -5,6 +5,7 @@ export interface Usuario {
     nome: string ;
     url: string | null ;
     admin: boolean ;
+    autor: boolean;
     created_at: Date;
 }
 

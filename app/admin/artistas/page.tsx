@@ -6,7 +6,8 @@ import {
   Typography, 
 } from '@mui/material';
 import { fetchArtistsByPage } from '@/actions/artista.tsx';
-
+import { getSession } from "@/app/lib/session";
+import { redirect } from "next/navigation";
 
 export default async function AdminArtistsPage({
   searchParams,
@@ -19,7 +20,13 @@ export default async function AdminArtistsPage({
 
   };
 }) {
-  //const currentPage = Number( searchParams?.page) || 1;
+
+
+  const session = await getSession();
+  if (!session?.admin) {
+    redirect('/'); // Redireciona para a home se não for admin
+  }
+
   const {page, query} = await searchParams;
   // Chama a Server Action para buscar os dados da página atual
   const { artists, totalCount } = await fetchArtistsByPage(page  || 1, query);

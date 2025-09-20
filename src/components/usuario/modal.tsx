@@ -1,9 +1,10 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect , useState} from 'react';
 import { useActionState } from 'react';
 import {
   Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField,
-  FormControlLabel, Checkbox, CircularProgress
+  FormControlLabel, Checkbox, CircularProgress,
+  FormControl, FormLabel, RadioGroup,Radio,
 } from '@mui/material';
 import { useFormStatus } from 'react-dom';
 import { type Usuario } from '@/src/models.tsx';
@@ -44,6 +45,22 @@ export function UserFormModal({ open, onClose, onSuccess, editingUser }: UserFor
   // Escolhe a ação correta e anexa o ID se estiver no modo de edição
   const action = isEditMode ? updateUser : createUser;
   const [state, formAction] = useActionState(action, initialState);
+  const [role, setRole] = useState('usuario');
+
+  useEffect(() => {
+    if (open && isEditMode) {
+      if (editingUser.admin) {
+        setRole('admin');
+      } else if (editingUser.autor) {
+        setRole('autor');
+      } else {
+        setRole('usuario');
+      }
+    } else if (!open) {
+      setRole('usuario'); // Reseta para o padrão ao fechar
+    }
+  }, [open, isEditMode, editingUser]);
+
 
   useEffect(() => {
     if (state.success) {
@@ -93,21 +110,31 @@ export function UserFormModal({ open, onClose, onSuccess, editingUser }: UserFor
           error={!!state.errors?.senha}
           helperText={state.errors?.senha?.[0]}
         />
-        <FormControlLabel
-          control={
-            <Checkbox
-              defaultChecked={isEditMode ? editingUser.admin : false}
-              name="admin"
-              // --- ALTERAÇÃO 2: Adiciona a cor customizada ao checkbox ---
-              sx={{
-                '&.Mui-checked': {
-                  color: '#d1717c',
-                },
-              }}
+        <FormControl component="fieldset" margin="normal">
+          <FormLabel component="legend">Tipo de Usuário</FormLabel>
+          <RadioGroup
+            row
+            name="role" // O nome enviado para a action
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <FormControlLabel 
+              value="usuario" 
+              control={<Radio sx={{ '&.Mui-checked': { color: '#d1717c' }}} />} 
+              label="Usuário" 
             />
-          }
-          label="Este usuário é um administrador"
-        />
+            <FormControlLabel 
+              value="autor" 
+              control={<Radio sx={{ '&.Mui-checked': { color: '#d1717c' }}} />} 
+              label="Autor" 
+            />
+            <FormControlLabel 
+              value="admin" 
+              control={<Radio sx={{ '&.Mui-checked': { color: '#d1717c' }}} />} 
+              label="Admin" 
+            />
+          </RadioGroup>
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button  sx={{ color: '#d1717c' }} onClick={onClose}>Cancelar</Button>

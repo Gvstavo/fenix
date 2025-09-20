@@ -10,21 +10,26 @@ import bcrypt from 'bcryptjs';
 const ITEMS_PER_PAGE = 20;
 
 
-const CreateUserSchema = z.object({
+const baseUserSchema = {
   nome: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres." }),
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
+  // Valida que o 'role' é uma das três opções esperadas
+  role: z.enum(['admin', 'autor', 'usuario'], {
+    errorMap: () => ({ message: "Selecione um tipo de usuário válido." })
+  }),
+};
+
+const CreateUserSchema = z.object({
+  ...baseUserSchema,
   senha: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." }),
-  admin: z.preprocess(val => val === 'on', z.boolean()), // Converte 'on'/'off' do checkbox
 });
 
-// Esquema para atualizar (senha é opcional)
 const UpdateUserSchema = z.object({
   id: z.string(),
-  nome: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres." }),
-  email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
-  senha: z.string().optional(), // Senha é opcional
-  admin: z.preprocess(val => val === 'on', z.boolean()),
+  ...baseUserSchema,
+  senha: z.string().optional(),
 });
+
 
 
 // Tipagem para o estado do formulário
@@ -55,6 +60,7 @@ export async function fetchUsersByPage(page: number, query: string = ''): Promis
         email,
         url,
         admin,
+        autor,
         created_at,
         COUNT(*) OVER() AS total_count
       FROM usuarios
@@ -111,7 +117,9 @@ export async function createUser(prevState: FormState, formData: FormData): Prom
   if (!validatedFields.success) {
     return { success: false, message: 'Erro de validação.', errors: validatedFields.error.flatten().fieldErrors };
   }
-  const { nome, email, senha, admin } = validatedFields.data;
+  const { nome, email, senha, role } = validatedFields.data;
+  const admin = role === 'admin';
+  const autor = role === 'autor';
 
   try {
     // Verifica se o email já existe
@@ -123,8 +131,8 @@ export async function createUser(prevState: FormState, formData: FormData): Prom
     const hashedPassword = await bcrypt.hash(senha, 10);
     
     await pool.query(
-      'INSERT INTO usuarios (nome, email, senha, admin, created_at) VALUES ($1, $2, $3, $4, NOW())',
-      [nome, email, hashedPassword, admin]
+      'INSERT INTO usuarios (nome, email, senha, admin, autor,created_at) VALUES ($1, $2, $3, $4, $5,NOW())',
+      [nome, email, hashedPassword, admin,autor]
     );
 
     revalidatePath('/admin/usuarios');
@@ -142,7 +150,9 @@ export async function updateUser(prevState: FormState, formData: FormData): Prom
   if (!validatedFields.success) {
     return { success: false, message: 'Erro de validação.', errors: validatedFields.error.flatten().fieldErrors };
   }
-  const { id, nome, email, senha, admin } = validatedFields.data;
+  const { id, nome, email, senha, role } = validatedFields.data;
+  const admin = role === 'admin';
+  const autor = role === 'autor';
 
   try {
     let hashedPassword = null;
@@ -152,13 +162,12 @@ export async function updateUser(prevState: FormState, formData: FormData): Prom
     
     // Query dinâmica: só atualiza a senha se uma nova for fornecida
     const queryText = hashedPassword
-      ? 'UPDATE usuarios SET nome = $1, email = $2, admin = $3, senha = $4 WHERE id = $5'
-      : 'UPDATE usuarios SET nome = $1, email = $2, admin = $3 WHERE id = $4';
+      ? 'UPDATE usuarios SET nome = $1, email = $2, admin = $3, autor = $4, senha = $5 WHERE id = $6'
+      : 'UPDATE usuarios SET nome = $1, email = $2, admin = $3, autor = $4 WHERE id = $5';
       
     const queryParams = hashedPassword
-      ? [nome, email, admin, hashedPassword, id]
-      : [nome, email, admin, id];
-
+      ? [nome, email, admin, autor, hashedPassword, id]
+      : [nome, email, admin, autor, id];
     await pool.query(queryText, queryParams);    
     revalidatePath('/admin/usuarios');
     return { success: true, message: 'Usuário atualizado com sucesso!' };

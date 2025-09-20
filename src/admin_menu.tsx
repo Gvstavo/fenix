@@ -25,9 +25,10 @@ import Link from 'next/link';
 // Definição da largura da sidebar para consistência
 const drawerWidth = 240;
 
-export function AdminSidebar() {
+export function AdminSidebar({ userSession }) {
   // Estado para controlar qual item da lista está selecionado
-  const [selectedIndex, setSelectedIndex] = useState(1); // 'Usuários' como padrão
+    const isAdmin = userSession.admin;
+  const [selectedIndex, setSelectedIndex] = useState(isAdmin? 1 : 5); // 'Usuários' como padrão
 
   const handleListItemClick = (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>,
@@ -65,102 +66,103 @@ export function AdminSidebar() {
         <Typography variant="overline" sx={{ px: 2, color: 'text.secondary' }}>
           Administração
         </Typography>
-        <Link href="/admin/usuarios" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
-          <ListItemButton
-            selected={selectedIndex === 1}
-            onClick={(event) => handleListItemClick(event, 1)}
-            sx={{ 
-              borderRadius: '8px', 
-              mx: 1, 
-              '&.Mui-selected': { 
-                bgcolor: '#d1717c',
-                color: 'white',
-                '& .MuiListItemIcon-root': { color: 'white' },
-                '&:hover': { bgcolor: '#c1616c' }
-              },
-              '&.Mui-selected:hover': {
-                bgcolor: '#c1616c'
-              }
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
-              <PeopleIcon />
-            </ListItemIcon>
-            <ListItemText primary="Usuários" />
-          </ListItemButton>
-        </Link>
-        <Link href="/admin/artistas" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
-          <ListItemButton
-            selected={selectedIndex === 2}
-            onClick={(event) => handleListItemClick(event, 2)}
-            sx={{ 
-              borderRadius: '8px', 
-              mx: 1, 
-              '&.Mui-selected': { 
-                bgcolor: '#d1717c',
-                color: 'white',
-                '& .MuiListItemIcon-root': { color: 'white' },
-                '&:hover': { bgcolor: '#c1616c' }
-              },
-              '&.Mui-selected:hover': {
-                bgcolor: '#c1616c'
-              }
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
-              <ColorLensIcon />
-            </ListItemIcon>
-            <ListItemText primary="Artistas" />
-          </ListItemButton>
-        </Link>
-        <Link href="/admin/autores" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
-          <ListItemButton
-            selected={selectedIndex === 3}
-            onClick={(event) => handleListItemClick(event, 3)}
-            sx={{ 
-              borderRadius: '8px', 
-              mx: 1, 
-              '&.Mui-selected': { 
-                bgcolor: '#d1717c',
-                color: 'white',
-                '& .MuiListItemIcon-root': { color: 'white' },
-                '&:hover': { bgcolor: '#c1616c' }
-              },
-              '&.Mui-selected:hover': {
-                bgcolor: '#c1616c'
-              }
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
-              <HistoryEduIcon />
-            </ListItemIcon>
-            <ListItemText primary="Autores" />
-          </ListItemButton>
-        </Link>
-        <Link href="/admin/generos" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
-          <ListItemButton
-            selected={selectedIndex === 4}
-            onClick={(event) => handleListItemClick(event, 4)}
-            sx={{ 
-              borderRadius: '8px', 
-              mx: 1, 
-              '&.Mui-selected': { 
-                bgcolor: '#d1717c',
-                color: 'white',
-                '& .MuiListItemIcon-root': { color: 'white' },
-                '&:hover': { bgcolor: '#c1616c' }
-              },
-              '&.Mui-selected:hover': {
-                bgcolor: '#c1616c'
-              }
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
-              <CategoryIcon />
-            </ListItemIcon>
-            <ListItemText primary="Gêneros" />
-          </ListItemButton>
-        </Link>
+           {isAdmin && ( <>
+            <Link href="/admin/usuarios" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
+              <ListItemButton
+                selected={selectedIndex === 1}
+                onClick={(event) => handleListItemClick(event, 1)}
+                sx={{ 
+                  borderRadius: '8px', 
+                  mx: 1, 
+                  '&.Mui-selected': { 
+                    bgcolor: '#d1717c',
+                    color: 'white',
+                    '& .MuiListItemIcon-root': { color: 'white' },
+                    '&:hover': { bgcolor: '#c1616c' }
+                  },
+                  '&.Mui-selected:hover': {
+                    bgcolor: '#c1616c'
+                  }
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
+                  <PeopleIcon />
+                </ListItemIcon>
+                <ListItemText primary="Usuários" />
+              </ListItemButton>
+            </Link>
+            <Link href="/admin/artistas" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
+              <ListItemButton
+                selected={selectedIndex === 2}
+                onClick={(event) => handleListItemClick(event, 2)}
+                sx={{ 
+                  borderRadius: '8px', 
+                  mx: 1, 
+                  '&.Mui-selected': { 
+                    bgcolor: '#d1717c',
+                    color: 'white',
+                    '& .MuiListItemIcon-root': { color: 'white' },
+                    '&:hover': { bgcolor: '#c1616c' }
+                  },
+                  '&.Mui-selected:hover': {
+                    bgcolor: '#c1616c'
+                  }
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
+                  <ColorLensIcon />
+                </ListItemIcon>
+                <ListItemText primary="Artistas" />
+              </ListItemButton>
+            </Link>
+            <Link href="/admin/autores" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
+              <ListItemButton
+                selected={selectedIndex === 3}
+                onClick={(event) => handleListItemClick(event, 3)}
+                sx={{ 
+                  borderRadius: '8px', 
+                  mx: 1, 
+                  '&.Mui-selected': { 
+                    bgcolor: '#d1717c',
+                    color: 'white',
+                    '& .MuiListItemIcon-root': { color: 'white' },
+                    '&:hover': { bgcolor: '#c1616c' }
+                  },
+                  '&.Mui-selected:hover': {
+                    bgcolor: '#c1616c'
+                  }
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
+                  <HistoryEduIcon />
+                </ListItemIcon>
+                <ListItemText primary="Autores" />
+              </ListItemButton>
+            </Link>
+            <Link href="/admin/generos" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
+              <ListItemButton
+                selected={selectedIndex === 4}
+                onClick={(event) => handleListItemClick(event, 4)}
+                sx={{ 
+                  borderRadius: '8px', 
+                  mx: 1, 
+                  '&.Mui-selected': { 
+                    bgcolor: '#d1717c',
+                    color: 'white',
+                    '& .MuiListItemIcon-root': { color: 'white' },
+                    '&:hover': { bgcolor: '#c1616c' }
+                  },
+                  '&.Mui-selected:hover': {
+                    bgcolor: '#c1616c'
+                  }
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
+                  <CategoryIcon />
+                </ListItemIcon>
+                <ListItemText primary="Gêneros" />
+              </ListItemButton>
+            </Link> </>)}
         <Link href="/admin/mangas" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
           <ListItemButton
             selected={selectedIndex === 5}
@@ -185,41 +187,9 @@ export function AdminSidebar() {
             <ListItemText primary="Mangás" />
           </ListItemButton>
         </Link>
-
-        {/* Adicione outros itens do menu aqui, se necessário */}
-        {/*
-        <Link href="/admin/dashboard" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
-          <ListItemButton
-            selected={selectedIndex === 2}
-            onClick={(event) => handleListItemClick(event, 2)}
-            sx={{ borderRadius: '8px', mx: 1 }}
-          >
-            <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
-              <DashboardIcon />
-            </ListItemIcon>
-            <ListItemText primary="Dashboard" />
-          </ListItemButton>
-        </Link>
-        <Link href="/admin/settings" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
-          <ListItemButton
-            selected={selectedIndex === 3}
-            onClick={(event) => handleListItemClick(event, 3)}
-            sx={{ borderRadius: '8px', mx: 1 }}
-          >
-            <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
-              <SettingsIcon />
-            </ListItemIcon>
-            <ListItemText primary="Configurações" />
-          </ListItemButton>
-        </Link>
-        */}
       </List>
 
-      {/* Espaço flexível para empurrar os itens de tema para baixo */}
       <Box sx={{ flexGrow: 1 }} /> 
-
-      {/* Ícones de tema (claro/escuro) */}
-
     </Box>
   );
 }

@@ -20,6 +20,7 @@ interface MangaFormModalProps {
   autores: Autor[];
   artistas: Artista[];
   generos: Genero [];
+  currentUserId: number;
 }
 
 // Botão de submit que mostra o estado de loading
@@ -42,7 +43,7 @@ function SubmitButton({ isEditMode }: { isEditMode: boolean }) {
   );
 }
 
-export function MangaFormModal({ open, onClose, onSuccess, editingManga,autores,artistas,generos  }: MangaFormModalProps) {
+export function MangaFormModal({ open, onClose, onSuccess, editingManga,autores,artistas,generos,currentUserId  }: MangaFormModalProps) {
   const isEditMode = Boolean(editingManga);
   const initialState: FormState = { message: '', success: false };
   const action = isEditMode ? updateManga : createManga;
@@ -103,6 +104,7 @@ export function MangaFormModal({ open, onClose, onSuccess, editingManga,autores,
       <DialogContent>
         {/* Campo oculto para o ID no modo de edição */}
         {isEditMode && <input type="hidden" name="id" value={editingManga.id} />}
+          {!isEditMode && <input type="hidden" name="created_by" value={currentUserId} />}
         
         {/* Título */}
         <TextField

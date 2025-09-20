@@ -18,6 +18,7 @@ const stringToArrayNonEmpty = z.string()
   });
 
 const CreateMangaSchema = z.object({
+  created_by: z.string().min(1, { message: "ID da sessão é inválido." }), // O ID é obrigatório
   titulo: z.string().min(3, { message: "O título deve ter pelo menos 3 caracteres." }),
   ano: z.coerce.number().int().positive({ message: "Por favor, insira um ano válido." }),
   sinopse: z.string().optional(),
@@ -71,7 +72,7 @@ export interface FormState {
 
 
 
-export async function fetchMangasByPage(page: number,query: string = ''): Promise<{ 
+export async function fetchMangasByPage(page: number,query: string = '', session_id, isAdmin): Promise<{ 
   generos: Manga[]; 
   totalCount: number; 
 }> {
@@ -84,7 +85,7 @@ export async function fetchMangasByPage(page: number,query: string = ''): Promis
     
     // A query utiliza LIMIT e OFFSET para paginação e COUNT(*) OVER()
     // para obter o número total de registros sem fazer uma segunda consulta.
-    const query = `
+    const query = isAdmin? `
 SELECT
   mangas.id,
   mangas.titulo,
@@ -116,13 +117,45 @@ GROUP BY
   mangas.id 
 ORDER BY
   mangas.titulo ASC
-LIMIT $2 OFFSET $3;
-    `;
+LIMIT $2 OFFSET $3;` :
+` SELECT
+  mangas.id,
+  mangas.titulo,
+  mangas.slug,
+  mangas.views,
+  mangas.created_at,
+  mangas.updated_at,
+  mangas.sinopse,
+  mangas.ano,
+  mangas.created_by,
+  mangas.thumbnail,
+  mangas.adulto,
+  mangas.finalizado,
+  COALESCE(ARRAY_AGG(DISTINCT ma.autor_id), '{}') AS autores,
+  COALESCE(ARRAY_AGG(DISTINCT mar.artista_id), '{}') AS artistas,
+  COALESCE(ARRAY_AGG(DISTINCT mg.genero_id), '{}') AS generos,
+  COUNT(*) OVER() AS total_count
+FROM
+  mangas
+LEFT JOIN
+  manga_autores ma ON mangas.id = ma.manga_id
+LEFT JOIN
+  manga_artistas mar ON mangas.id = mar.manga_id
+LEFT JOIN
+  manga_generos mg ON mangas.id = mg.manga_id
+WHERE
+  mangas.titulo ILIKE $1 AND mangas.created_by = $2
+GROUP BY
+  mangas.id 
+ORDER BY
+  mangas.titulo ASC
+LIMIT $3 OFFSET $4;` ;
 
-    const result = await pool.query(query, [searchQuery,ITEMS_PER_PAGE, offset]);
+    const result = isAdmin? 
+      await pool.query(query, [searchQuery,ITEMS_PER_PAGE, offset]) :
+       await pool.query(query, [searchQuery,session_id,ITEMS_PER_PAGE, offset]) ;
 
-
-    const mangas = result.rows as Autor[];
+    const mangas = result.rows as Manga[];
 
     const totalCount = parseInt(result.rows[0]?.total_count || '0', 0);
 
@@ -169,18 +202,18 @@ export async function createManga(prevState: FormState, formData: FormData): Pro
     return { success: false, message: 'Erro de validação.', errors: validatedFields.error.flatten().fieldErrors };
   }
   
-  const { titulo, ano, sinopse, adulto, finalizado, thumbnail, autores, artistas, generos } = validatedFields.data;
+  const { titulo, ano, sinopse, adulto, finalizado, thumbnail, autores, artistas, generos,created_by } = validatedFields.data;
 
 
   try {
     await pool.query('BEGIN');
 
     const mangaInsertQuery = `
-      INSERT INTO mangas (titulo, ano, sinopse, adulto, finalizado,slug,views,created_at,updated_at) 
-      VALUES ($1, $2, $3, $4, $5,$6,0,NOW(),NOW()) 
+      INSERT INTO mangas (titulo, ano, sinopse, adulto, finalizado,slug,created_by,views,created_at,updated_at) 
+      VALUES ($1, $2, $3, $4, $5,$6,$7,0,NOW(),NOW()) 
       RETURNING id;
     `;
-    const mangaResult = await pool.query(mangaInsertQuery, [titulo, ano, sinopse, adulto, finalizado,slug(titulo)]);
+    const mangaResult = await pool.query(mangaInsertQuery, [titulo, ano, sinopse, adulto, finalizado,slug(titulo),created_by]);
     const newMangaId = mangaResult.rows[0].id;
 
     // 4. Inserir nas tabelas de relacionamento

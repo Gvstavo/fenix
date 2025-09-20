@@ -9,6 +9,7 @@ import { fetchMangasByPage } from '@/actions/manga.tsx';
 import {fetchAllArtists} from '@/actions/artista.tsx';
 import {fetchAllAutores} from '@/actions/autor.tsx';
 import {fetchAllGeneros} from '@/actions/genero.tsx';
+import { getSession } from "@/app/lib/session";
 
 export default async function AdminGenerosPage({
   searchParams,
@@ -23,8 +24,9 @@ export default async function AdminGenerosPage({
 }) {
   //const currentPage = Number( searchParams?.page) || 1;
   const {page, query} = await searchParams;
+  const session = await getSession();
   // Chama a Server Action para buscar os dados da página atual
-  const { mangas, totalCount } = await fetchMangasByPage(page  || 1, query);
+  const { mangas, totalCount } = await fetchMangasByPage(page  || 1, query, session.id, session.admin);
   const {autores} = await fetchAllAutores();
   const {artists} = await fetchAllArtists();
   const {generos} = await fetchAllGeneros();
@@ -42,6 +44,7 @@ export default async function AdminGenerosPage({
         autores={autores}
         artistas={artists}
         generos={generos}
+        currentUserId={session.id}
       />
     </Box>
   );

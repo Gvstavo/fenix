@@ -49,6 +49,18 @@ export const HeaderClient = ({ user }) => {
                 </Button>
               </Link>
             )}
+                        {user && user.autor && (
+              <Link 
+                href="/admin/mangas" 
+                target="_blank" // Abre em uma nova guia
+                rel="noopener noreferrer" // Boas práticas de segurança para target="_blank"
+                passHref
+              >
+                <Button sx={{ color: 'white', mx: 1, fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  Administração
+                </Button>
+              </Link>
+            )}
           </Box>
           
           <Box sx={{ display: 'flex', alignItems: 'center' }}>

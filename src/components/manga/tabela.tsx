@@ -41,12 +41,13 @@ interface MangaTableProps {
   autores: Autor[];
   artistas: Artista[];
   generos: Genero [];
+  currentUserId: number;
 }
 
 // Definimos o número de itens por página como uma constante
 const ITEMS_PER_PAGE = 20;
 
-export function MangasTable({ mangas, totalCount,autores,artistas,generos }: MangaTableProps) {
+export function MangasTable({ mangas, totalCount,autores,artistas,generos, currentUserId}: MangaTableProps) {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
@@ -248,6 +249,7 @@ export function MangasTable({ mangas, totalCount,autores,artistas,generos }: Man
         autores={autores}
         artistas={artistas}
         generos={generos}
+        currentUserId={currentUserId}
         />
       )}
 
