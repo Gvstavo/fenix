@@ -142,7 +142,7 @@ export function MangasTable({ mangas, totalCount,autores,artistas,generos }: Man
           boxShadow: 1
         }} >
         <Typography sx={{ fontWeight: 'bold' }} variant="h6" component="div">
-          Mangas
+          Mangás
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <TextField

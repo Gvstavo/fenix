@@ -140,7 +140,7 @@ export function AutoresTable({ autores, totalCount }: AutoresTableProps) {
           boxShadow: 1
         }} >
         <Typography sx={{ fontWeight: 'bold' }} variant="h6" component="div">
-          Autors
+          Autores
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <TextField

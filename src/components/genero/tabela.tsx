@@ -140,7 +140,7 @@ export function GenerosTable({ generos, totalCount }: GeneroTableProps) {
           boxShadow: 1
         }} >
         <Typography sx={{ fontWeight: 'bold' }} variant="h6" component="div">
-          Generos
+          Gêneros
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <TextField
