@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
     serverActions: {
         bodySizeLimit: '10mb',
   }},
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https', // ou 'http' se você não usa SSL
+        hostname: process.env.MINIO_ENDPOINT, // Ex: 'minio.seuservidor.com'
+        pathname: `/${process.env.MINIO_BUCKET_NAME}/**`, // Ex: '/mangas/**'
+      },
+    ],
+  },
 
 };
 

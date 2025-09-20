@@ -10,7 +10,7 @@ import { useFormStatus } from 'react-dom';
 import {type Autor, type Genero, type Artista, type Manga} from '@/src/models.tsx'
 import { type FormState, createManga, updateManga } from '@/actions/manga';
 import { getPresignedUrl } from '@/actions/minio.ts';
-
+import Image from 'next/image';
 
 interface MangaFormModalProps {
   open: boolean;
@@ -270,30 +270,42 @@ export function MangaFormModal({ open, onClose, onSuccess, editingManga,autores,
         {/* Upload de Imagem */}
         <Box my={2}>
             {/* 4. Exibição da imagem atual (preview) */}
-            {isEditMode && imageUrl && (
-                <Box mb={2} sx={{ textAlign: 'center' }}>
-                    <img 
-                        src={imageUrl} 
-                        alt="Thumbnail atual" 
-                        style={{ maxHeight: '150px', maxWidth: '100%', borderRadius: '8px' }}
-                    />
-                </Box>
-            )}
-
-          <Button
-            variant="outlined"
-            component="label"
-            sx={{ color: '#d1717c', borderColor: 'rgba(209, 113, 124, 0.5)' }}
-          >
-            {isEditMode ? 'Alterar Thumbnail' : 'Selecionar Thumbnail'} (.webp)
-            <input
-              type="file"
-              hidden
-              name="thumbnail"
-              accept="image/webp"
-              onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+       {isEditMode && imageUrl && (
+          <Box mb={2} sx={{ position: 'relative', width: '100%', height: '200px', textAlign: 'center' }}>
+            <Image 
+              src={imageUrl} 
+              alt="Thumbnail atual" 
+              fill // A prop 'fill' faz a imagem preencher o container pai
+              style={{ objectFit: 'contain', borderRadius: '8px' }} // 'contain' para não cortar a imagem
+              sizes="(max-width: 600px) 100vw, 400px" // Ajuda na otimização de imagem responsiva
             />
-          </Button>
+          </Box>
+        )}
+
+        <Button
+          variant="outlined"
+          component="label"
+          sx={{ color: '#d1717c', borderColor: 'rgba(209, 113, 124, 0.5)' }}
+        >
+          {isEditMode ? 'Alterar Thumbnail' : 'Selecionar Thumbnail'} (.webp)
+          <input
+            type="file"
+            hidden
+            name="thumbnail"
+            accept="image/webp"
+            required={!isEditMode}
+            onChange={(e) => {
+              // Lógica opcional para preview do lado do cliente
+              if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                setFileName(file.name);
+                setImageUrl(URL.createObjectURL(file)); // Cria uma URL temporária para preview
+              } else {
+                setFileName(null);
+              }
+            }}
+          />
+        </Button>
           { (fileName || (isEditMode && editingManga.thumbnail)) && (
             <Typography variant="body2" component="span" ml={2}>
               {fileName ?? editingManga.thumbnail.split('/').pop()}
