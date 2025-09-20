@@ -73,7 +73,30 @@ export async function fetchGenerosByPage(page: number,query: string = ''): Promi
   }
 }
 
+export async function fetchAllGeneros(): Promise<{ 
+  generos: Genero[]; 
+}> {
 
+  try {
+    
+    const query = `
+      SELECT
+        id,
+        nome,
+        slug
+      FROM generos
+    `;
+    const result = await pool.query(query);
+
+    const generos = result.rows as Genero[];
+    return { generos};
+
+  } catch (error) {
+    return {
+      generos: [],
+    };
+  }
+}
 
 export async function deleteGenero(id: int){
   // Validação simples para garantir que o ID não está vazio

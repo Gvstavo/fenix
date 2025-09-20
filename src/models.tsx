@@ -25,3 +25,22 @@ export interface Genero {
     nome: string;
     slug?: string | null;
 }
+
+export interface Manga{
+    id: int;
+    titulo: string;
+    slug: string;
+    views: int;
+    created_at: Date,
+    created_by: int,
+    updated_at: Date,
+    sinopse: string;
+    ano: int;
+    thumbnail: string;
+    adulto: boolean;
+    finalizado: boolean;
+
+    autores: [] | null;
+    generos: [] | null;
+    artistas: [] | null;
+}

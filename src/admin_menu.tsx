@@ -19,6 +19,7 @@ import NightsStayIcon from '@mui/icons-material/NightsStay'; // Para o tema escu
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import CategoryIcon from '@mui/icons-material/Category';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import Link from 'next/link';
 
 // Definição da largura da sidebar para consistência
@@ -158,6 +159,30 @@ export function AdminSidebar() {
               <CategoryIcon />
             </ListItemIcon>
             <ListItemText primary="Gêneros" />
+          </ListItemButton>
+        </Link>
+        <Link href="/admin/mangas" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
+          <ListItemButton
+            selected={selectedIndex === 5}
+            onClick={(event) => handleListItemClick(event, 5)}
+            sx={{ 
+              borderRadius: '8px', 
+              mx: 1, 
+              '&.Mui-selected': { 
+                bgcolor: '#d1717c',
+                color: 'white',
+                '& .MuiListItemIcon-root': { color: 'white' },
+                '&:hover': { bgcolor: '#c1616c' }
+              },
+              '&.Mui-selected:hover': {
+                bgcolor: '#c1616c'
+              }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
+              <MenuBookIcon />
+            </ListItemIcon>
+            <ListItemText primary="Mangás" />
           </ListItemButton>
         </Link>
 

@@ -74,7 +74,30 @@ export async function fetchAutoresByPage(page: number,query: string = ''): Promi
 }
 
 
+export async function fetchAllAutores(): Promise<{ 
+  autores: Autor[]; 
+}> {
 
+  try {
+    
+    const query = `
+      SELECT
+        id,
+        nome,
+        slug
+      FROM autores
+    `;
+    const result = await pool.query(query);
+
+    const autores = result.rows as Autor[];
+    return { autores};
+
+  } catch (error) {
+    return {
+      autores: [],
+    };
+  }
+}
 export async function deleteAutor(id: int){
   // Validação simples para garantir que o ID não está vazio
   if (!id) {

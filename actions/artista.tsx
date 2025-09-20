@@ -73,7 +73,31 @@ export async function fetchArtistsByPage(page: number,query: string = ''): Promi
   }
 }
 
+export async function fetchAllArtists(): Promise<{ 
+  artists: Artista[]; 
+}> {
 
+  try {
+    
+    const query = `
+      SELECT
+        id,
+        nome,
+        slug
+      FROM artistas
+    `;
+    const result = await pool.query(query);
+
+    const artists = result.rows as Artista[];
+    return { artists};
+
+  } catch (error) {
+    console.log("query error artista all: ",error);
+    return {
+      artists: [],
+    };
+  }
+}
 
 export async function deleteArtist(id: int){
   // Validação simples para garantir que o ID não está vazio

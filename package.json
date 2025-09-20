@@ -17,6 +17,7 @@
     "@mui/material-nextjs": "^7.3.2",
     "bcryptjs": "^3.0.2",
     "jose": "^6.1.0",
+    "minio": "^8.0.6",
     "next": "15.5.2",
     "pg": "^8.16.3",
     "react": "19.1.0",
