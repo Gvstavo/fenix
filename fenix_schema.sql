@@ -133,3 +133,5 @@ CREATE INDEX ON capitulo_comentarios (capitulo_id);
 CREATE INDEX ON capitulo_comentarios (usuario_id);
 
 ALTER TABLE usuarios ADD COLUMN autor BOOLEAN DEFAULT FALSE;
+ALTER TABLE manga_capitulos ADD COLUMN thumbnail TEXT;
+ALTER TABLE mangas ADD CONSTRAINT unique_slug UNIQUE (slug);

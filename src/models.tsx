@@ -28,15 +28,15 @@ export interface Genero {
 }
 
 export interface Manga{
-    id: int;
+    id: number;
     titulo: string;
     slug: string;
-    views: int;
+    views: number;
     created_at: Date,
-    created_by: int,
+    created_by: number,
     updated_at: Date,
     sinopse: string;
-    ano: int;
+    ano: number;
     thumbnail: string;
     adulto: boolean;
     finalizado: boolean;
@@ -44,4 +44,15 @@ export interface Manga{
     autores: [] | null;
     generos: [] | null;
     artistas: [] | null;
+}
+
+export interface Capitulo{
+    id: int;
+    manga_id: int;
+    titulo: string;
+    numero: int;
+    thumbnail: string;
+    created_by: int; 
+    created_at: Date;
+
 }

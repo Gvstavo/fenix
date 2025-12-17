@@ -1,7 +1,7 @@
 'use server';
 
 import { Pool } from 'pg';
-import { Manga } from '@/src/models.tsx';
+import { Manga, Capitulo } from '@/src/models.tsx';
 import pool  from '@/src/db.ts';
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod';
@@ -70,6 +70,25 @@ export interface FormState {
   success: boolean;
 }
 
+export async function getMangaBySlug(slug: string) {
+  try {
+    const result = await pool.query('SELECT * FROM mangas WHERE slug = $1', [slug]);
+    return result.rows[0] as Manga|| null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch manga by slug.');
+  }
+}
+
+export async function getChaptersForManga(mangaId) {
+  try {
+    const result = await pool.query('SELECT * FROM manga_capitulos WHERE manga_id = $1 ORDER BY numero DESC', [mangaId]);
+    return result.rows as Capitulo[];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch chapters for manga.');
+  }
+}
 
 
 export async function fetchMangasByPage(page: number,query: string = '', session_id, isAdmin): Promise<{ 

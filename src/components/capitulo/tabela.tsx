@@ -32,30 +32,27 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
-import {type Autor, type Genero, type Artista, type Manga} from '@/src/models.tsx'
-import { deleteManga } from '@/actions/manga.tsx'; // <-- 1. Importe a nova ação
-import { MangaFormModal } from './modal.tsx'; // <-- Importa o novo modal
+import { type Capitulo, type Manga} from '@/src/models.tsx'
+import { deleteCapitulo } from '@/actions/capitulo.ts'; // <-- 1. Importe a nova ação
+import { CapituloFormModal } from './modal.tsx'; // <-- Importa o novo modal
 import Link from 'next/link'; // <-- Importe o Link do Next.js
-interface MangaTableProps {
-  mangas: Manga[];
+interface CapituloTableProps {
+  capitulos: Capitulo[];
   totalCount: number;
-  autores: Autor[];
-  artistas: Artista[];
-  generos: Genero [];
-  currentUserId: number;
+  manga: Manga;
 }
 
 // Definimos o número de itens por página como uma constante
 const ITEMS_PER_PAGE = 20;
 
-export function MangasTable({ mangas, totalCount,autores,artistas,generos, currentUserId}: MangaTableProps) {
+export function CapitulosTable({ capitulos, totalCount, manga}: CapituloTableProps) {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [mangaToDelete, setMangaToDelete] = useState<Manga | null>(null);
+  const [capituloToDelete, setCapituloToDelete] = useState<Capitulo | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [editingManga, setEditingManga] = useState<Manga | null>(null);
+  const [editingCapitulo, setEditingCapitulo] = useState<Capitulo | null>(null);
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
     // Sempre volta para a primeira página ao fazer uma nova busca
@@ -71,12 +68,12 @@ export function MangasTable({ mangas, totalCount,autores,artistas,generos, curre
     router.replace(`?${params.toString()}`);
   };
   const handleOpenCreateModal = () => {
-    setEditingManga(null); // Limpa o usuário em edição (modo de criação)
+    setEditingCapitulo(null); // Limpa o usuário em edição (modo de criação)
     setIsFormModalOpen(true);
   };
 
-  const handleOpenEditModal = (user: Manga) => {
-    setEditingManga(user); // Define o usuário para edição
+  const handleOpenEditModal = (user: Capitulo) => {
+    setEditingCapitulo(user); // Define o usuário para edição
     setIsFormModalOpen(true);
   };
   
@@ -87,22 +84,22 @@ export function MangasTable({ mangas, totalCount,autores,artistas,generos, curre
     setSnackbarOpen(true);
   };
 
-  const handleOpenDeleteDialog = (user: Manga) => {
-    setMangaToDelete(user);
+  const handleOpenDeleteDialog = (user: Capitulo) => {
+    setCapituloToDelete(user);
     setDialogOpen(true);
   };
 
   // Fecha o diálogo e limpa os dados do usuário
   const handleCloseDeleteDialog = () => {
     setDialogOpen(false);
-    setMangaToDelete(null);
+    setCapituloToDelete(null);
   };
 
   // Executa a exclusão quando o usuário confirma no diálogo
   const handleConfirmDelete = async () => {
-    if (!mangaToDelete) return;
+    if (!capituloToDelete) return;
 
-    const result = await deleteManga(mangaToDelete.id);
+    const result = await deleteCapitulo(capituloToDelete.id, manga.slug);
     
     setSnackbarMessage(result.message);
     setSnackbarSeverity(result.success ? 'success' : 'error');
@@ -144,13 +141,13 @@ export function MangasTable({ mangas, totalCount,autores,artistas,generos, curre
           boxShadow: 1
         }} >
         <Typography sx={{ fontWeight: 'bold' }} variant="h6" component="div">
-          Mangás
+          Gerenciador de Capítulos
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <TextField
             variant="outlined"
             size="small"
-            placeholder="Pesquisar por nome..."
+            placeholder="Pesquisar por título..."
             // Define o valor padrão com base na URL, para que a busca persista no refresh
             defaultValue={searchParams.get('query') || ''}
             onChange={(e) => {
@@ -179,21 +176,23 @@ export function MangasTable({ mangas, totalCount,autores,artistas,generos, curre
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold' }}>Título</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Número</TableCell>
+
                 <TableCell sx={{ fontWeight: 'bold', width: '120px' }} align="right">Ações</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {mangas.map((manga) => (
-                <TableRow key={manga.id}>
-                  <TableCell>      <Link href={`/admin/mangas/${manga.slug}`} >{manga.titulo || '-'}</Link>
-                  </TableCell>
+              {capitulos.map((capitulo) => (
+                <TableRow key={capitulo.id}>
+                  <TableCell>  {capitulo.titulo}</TableCell>
+                  <TableCell>  {capitulo.numero}</TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => handleOpenEditModal(manga)}><EditIcon fontSize="small" /></IconButton>
-                    <IconButton size="small" onClick={() => handleOpenDeleteDialog(manga)}><DeleteIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" onClick={() => handleOpenEditModal(capitulo)}><EditIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" onClick={() => handleOpenDeleteDialog(capitulo)}><DeleteIcon fontSize="small" /></IconButton>
                   </TableCell>
                 </TableRow>
               ))}
-              {mangas.length === 0 && (
+              {capitulos.length === 0 && (
                 <TableRow><TableCell colSpan={5} align="center">Nenhum resultado encontrado.</TableCell></TableRow>
               )}
             </TableBody>
@@ -231,7 +230,7 @@ export function MangasTable({ mangas, totalCount,autores,artistas,generos, curre
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
             Tem certeza que deseja deletar permanentemente
-            <strong>{` ${mangaToDelete?.nome || ''}`}</strong>? Esta ação não pode ser desfeita.
+            <strong>{` ${capituloToDelete?.nome || ''}`}</strong>? Esta ação não pode ser desfeita.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -243,15 +242,12 @@ export function MangasTable({ mangas, totalCount,autores,artistas,generos, curre
       </Dialog>
 
       {isFormModalOpen && (
-        <MangaFormModal
+        <CapituloFormModal
           open={isFormModalOpen}
           onClose={() => setIsFormModalOpen(false)}
           onSuccess={handleFormSuccess}
-          editingManga={editingManga}
-        autores={autores}
-        artistas={artistas}
-        generos={generos}
-        currentUserId={currentUserId}
+          editingCapitulo={editingCapitulo}
+        manga={manga}
         />
       )}
 
