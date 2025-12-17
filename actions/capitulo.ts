@@ -240,7 +240,7 @@ export async function deleteCapitulo(id: string): Promise<{ success: boolean; me
     const { manga_id, slug } = findResult.rows[0];
 
     // 3. Listar e deletar arquivos do MinIO
-    const prefix = `mangas/${manga_id}/capitulos/${id}/`;
+/*    const prefix = `mangas/${manga_id}/capitulos/${id}/`;
     const objectsStream = minioClient.listObjectsV2('mangas', prefix, true);
     
     const objectKeys: string[] = [];
@@ -252,7 +252,7 @@ export async function deleteCapitulo(id: string): Promise<{ success: boolean; me
 
     if (objectKeys.length > 0) {
       await minioClient.removeObjects('mangas', objectKeys);
-    }
+    }*/
 
     // 4. Deletar do banco
     await client.query('DELETE FROM manga_capitulos WHERE id = $1', [id]);
