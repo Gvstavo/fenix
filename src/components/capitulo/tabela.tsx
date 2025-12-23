@@ -184,7 +184,14 @@ export function CapitulosTable({ capitulos, totalCount, manga}: CapituloTablePro
             <TableBody>
               {capitulos.map((capitulo) => (
                 <TableRow key={capitulo.id}>
-                  <TableCell>  {capitulo.titulo}</TableCell>
+                  <TableCell> <Link 
+                      href={`/admin/mangas/${manga.slug}/${capitulo.id}`} 
+                      passHref 
+                      style={{ textDecoration: 'none' }}
+                    >
+                        {capitulo.titulo}
+
+                    </Link></TableCell>
                   <TableCell>  {capitulo.numero}</TableCell>
                   <TableCell align="right">
                     <IconButton size="small" onClick={() => handleOpenEditModal(capitulo)}><EditIcon fontSize="small" /></IconButton>

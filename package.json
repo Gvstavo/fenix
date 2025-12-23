@@ -15,6 +15,7 @@
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.2",
     "@mui/material-nextjs": "^7.3.2",
+    "adm-zip": "^0.5.16",
     "bcryptjs": "^3.0.2",
     "jose": "^6.1.0",
     "minio": "^8.0.6",
