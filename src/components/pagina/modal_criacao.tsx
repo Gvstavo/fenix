@@ -77,8 +77,7 @@ export function PaginaCreateModal({ open, onClose, onSuccess, capituloId }: Pagi
         <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
           
           <Alert severity="warning">
-            Atenção: O envio de um arquivo ZIP processará as imagens baseadas na numeração (ex: 1.webp, 2.jpg). 
-            Registros preexistentes com o mesmo número serão substituídos.
+            Atenção: O envio de um arquivo ZIP <strong>apagará todas as páginas existentes</strong> neste capítulo e as substituirá pelo conteúdo do arquivo.
           </Alert>
 
           <Button

@@ -9,6 +9,7 @@ import AdmZip from 'adm-zip';
 // Configurações
 const MAX_ZIP_SIZE = 100 * 1024 * 1024; // 100MB
 const ALLOWED_IMAGE_EXTENSIONS = ['.webp', '.jpg', '.jpeg', '.png'];
+const ITEMS_PER_PAGE = 10; // <--- NOVA CONSTANTE
 
 // Interface para retorno das ações
 interface ActionState {
@@ -22,7 +23,7 @@ interface ActionState {
  */
 export async function createPaginasFromZip(
   capituloId: string | number,
-  _prevState: ActionState, // <--- ADICIONADO: O React injeta o estado anterior aqui
+  _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
   const file = formData.get('zipfile') as File;
@@ -40,7 +41,7 @@ export async function createPaginasFromZip(
 
 
   try {
-    // 2. Buscar o manga_id e o slug para construir o caminho e revalidar
+    // 2. Buscar o manga_id e o slug
     const mangaQuery = `
       SELECT m.id as manga_id, m.slug
       FROM manga_capitulos c
@@ -65,9 +66,7 @@ export async function createPaginasFromZip(
     const validEntries = zipEntries.filter(entry => {
       if (entry.isDirectory) return false;
       const lowerName = entry.name.toLowerCase();
-      // Ignora arquivos de sistema do Mac ou ocultos
       if (lowerName.startsWith('__macosx') || lowerName.startsWith('.')) return false;
-      // Verifica extensão
       return ALLOWED_IMAGE_EXTENSIONS.some(ext => lowerName.endsWith(ext));
     });
 
@@ -78,12 +77,12 @@ export async function createPaginasFromZip(
     // 4. Iniciar Transação
     await pool.query('BEGIN');
 
-    // Limpar páginas existentes deste capítulo? (Opcional: descomente se quiser substituir tudo ao enviar novo zip)
-    // await pool.query('DELETE FROM capitulo_paginas WHERE capitulo_id = $1', [capituloId]);
+    // --- ALTERAÇÃO: Limpar páginas existentes deste capítulo ---
+    // Removemos todas as páginas antigas antes de inserir as novas
+    await pool.query('DELETE FROM capitulo_paginas WHERE capitulo_id = $1', [capituloId]);
 
     // Processar cada imagem
     for (const entry of validEntries) {
-      // Tenta extrair o número do nome do arquivo (ex: "1.webp" -> 1)
       const fileName = entry.name;
       const numeroStr = fileName.split('.')[0];
       const numero = parseInt(numeroStr, 10);
@@ -93,28 +92,27 @@ export async function createPaginasFromZip(
         continue;
       }
 
-      // Prepara o buffer da imagem
       const fileContent = entry.getData();
-      
       const objectKey = `mangas/${manga_id}/capitulos/${capituloId}/${numero}.webp`;
 
       // Upload para o MinIO
       await minioClient.putObject('mangas', objectKey, fileContent, {
-        'Content-Type': 'image/webp' // Idealmente o zip já deve ter webps
+        'Content-Type': 'image/webp'
       });
 
       // Inserir no Banco de Dados
+      // Como limpamos a tabela antes, usamos INSERT direto. 
+      // O try/catch permanece apenas para prevenir erro caso o ZIP tenha dois arquivos "1.jpg" e "1.png" (duplicidade no ZIP)
       const insertQuery = `
         INSERT INTO capitulo_paginas (capitulo_id, numero, url)
         VALUES ($1, $2, $3)
       `;
-      // Como pode haver conflito se já existir a página, o ideal seria tratar erros de chave duplicada ou usar ON CONFLICT
-      // Mas seguindo o padrão simples solicitado:
+      
       try {
           await pool.query(insertQuery, [capituloId, numero, objectKey]);
       } catch (e: any) {
-          // Se for erro de duplicidade (código 23505 no Postgres), podemos tentar UPDATE ou ignorar
           if (e.code === '23505') {
+             // Se houver duplicidade DENTRO do zip, atualiza com a última versão processada
              await pool.query('UPDATE capitulo_paginas SET url = $1 WHERE capitulo_id = $2 AND numero = $3', [objectKey, capituloId, numero]);
           } else {
              throw e;
@@ -137,14 +135,12 @@ export async function createPaginasFromZip(
 
 /**
  * Deleta uma única página
- * (Esta função NÃO usa useActionState na tabela, é chamada diretamente no onClick, então NÃO recebe prevState)
  */
 export async function deletePagina(paginaId: string | number): Promise<ActionState> {
 
   try {
     await pool.query('BEGIN');
 
-    // Busca dados para remover do MinIO e para revalidate
     const findQuery = `
       SELECT p.url, m.slug
       FROM capitulo_paginas p
@@ -186,11 +182,10 @@ export async function deletePagina(paginaId: string | number): Promise<ActionSta
  */
 export async function updatePagina(
   paginaId: string | number, 
-  _prevState: ActionState, // <--- ADICIONADO: O React injeta o estado anterior aqui
+  _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
   const newFile = formData.get('image') as File;
-  // Captura o número caso tenha sido enviado no form
   const novoNumero = formData.get('numero'); 
 
   if ((!newFile || newFile.size === 0) && !novoNumero) {
@@ -198,7 +193,6 @@ export async function updatePagina(
   }
 
   try {
-    // Busca dados atuais
     const findQuery = `
       SELECT p.url, m.slug, p.capitulo_id, p.numero, c.manga_id
       FROM capitulo_paginas p
@@ -215,9 +209,7 @@ export async function updatePagina(
     const { manga_id, capitulo_id, numero, slug, url } = result.rows[0];
     let finalUrl = url;
 
-    // Se houve envio de arquivo, faz upload e atualiza URL
     if (newFile && newFile.size > 0) {
-        // Usa o número novo se existir, senão usa o atual para definir o nome do arquivo
         const targetNumero = novoNumero ? novoNumero : numero;
         const objectKey = `mangas/${manga_id}/capitulos/${capitulo_id}/${targetNumero}.webp`;
         
@@ -228,8 +220,6 @@ export async function updatePagina(
         finalUrl = objectKey;
     }
 
-    // Atualiza o banco
-    // Se o número mudou, atualiza numero e url. Se só imagem mudou, atualiza url.
     if (novoNumero && novoNumero !== numero.toString()) {
          await pool.query('UPDATE capitulo_paginas SET url = $1, numero = $2 WHERE id = $3', [finalUrl, novoNumero, paginaId]);
     } else {
@@ -247,20 +237,56 @@ export async function updatePagina(
 
 /**
  * Busca todas as páginas de um capítulo específico
- * (Adicionado conforme sua solicitação anterior para o page.tsx funcionar)
  */
-export async function fetchPaginasByCapituloId(capituloId: string | number) {
+export async function fetchPaginasByCapituloId(
+    capituloId: string | number,
+    page: number = 1,
+    queryTerm: string = '',
+    limit: number = ITEMS_PER_PAGE // <--- USANDO A CONSTANTE AQUI
+  ) {
     try {
-      const query = `
+      const offset = (page - 1) * limit;
+  
+      // Base da query
+      let sqlQuery = `
         SELECT id, capitulo_id, numero, url
         FROM capitulo_paginas
         WHERE capitulo_id = $1
-        ORDER BY numero ASC
       `;
-      const result = await pool.query(query, [capituloId]);
       
+      const queryParams: any[] = [capituloId];
+  
+      // Adiciona filtro se houver busca
+      if (queryTerm) {
+        sqlQuery += ` AND CAST(numero AS TEXT) LIKE $${queryParams.length + 1}`;
+        queryParams.push(`%${queryTerm}%`);
+      }
+  
+      // Ordenação e Paginação
+      sqlQuery += ` ORDER BY numero ASC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+      queryParams.push(limit, offset);
+  
+      const result = await pool.query(sqlQuery, queryParams);
+  
+      // Query para Contagem Total
+      let countQuery = `
+        SELECT COUNT(*) as total
+        FROM capitulo_paginas
+        WHERE capitulo_id = $1
+      `;
+      const countParams: any[] = [capituloId];
+  
+      if (queryTerm) {
+        countQuery += ` AND CAST(numero AS TEXT) LIKE $${countParams.length + 1}`;
+        countParams.push(`%${queryTerm}%`);
+      }
+  
+      const countResult = await pool.query(countQuery, countParams);
+      const totalCount = parseInt(countResult.rows[0].total, 10);
+  
+      // Busca info do cabeçalho
       const capQuery = `
-         SELECT c.numero, m.titulo 
+         SELECT c.numero, c.titulo 
          FROM manga_capitulos c
          JOIN mangas m ON c.manga_id = m.id
          WHERE c.id = $1
@@ -270,10 +296,11 @@ export async function fetchPaginasByCapituloId(capituloId: string | number) {
   
       return { 
         paginas: result.rows, 
-        info: info 
+        totalCount,
+        info 
       };
     } catch (error) {
       console.error('Erro ao buscar páginas:', error);
-      return { paginas: [], info: { numero: '?', titulo: '?' } };
+      return { paginas: [], totalCount: 0, info: { numero: '?', titulo: '?' } };
     }
   }
