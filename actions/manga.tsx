@@ -80,6 +80,107 @@ export async function getMangaBySlug(slug: string) {
   }
 }
 
+export async function fetchMangasForHome(page: number = 1): Promise<{ 
+  mangas: Manga[]; 
+  totalCount: number; 
+}> {
+  const ITEMS_PER_PAGE_HOME = 12;
+  const currentPage = Math.max(page, 1);
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE_HOME;
+
+  try {
+    // Adicionamos uma subquery (JSON_AGG) para pegar os 2 ultimos capitulos
+    const query = `
+      SELECT
+        mangas.id,
+        mangas.titulo,
+        mangas.slug,
+        mangas.views,
+        mangas.created_at,
+        mangas.updated_at,
+        mangas.sinopse,
+        mangas.ano,
+        mangas.created_by,
+        mangas.thumbnail,
+        mangas.adulto,
+        mangas.finalizado,
+        COALESCE(ARRAY_AGG(DISTINCT ma.autor_id), '{}') AS autores,
+        COALESCE(ARRAY_AGG(DISTINCT mar.artista_id), '{}') AS artistas,
+        COALESCE(ARRAY_AGG(DISTINCT mg.genero_id), '{}') AS generos,
+        MAX(mc.created_at) as last_chapter_at,
+        
+        -- NOVA PARTE: Busca os 2 últimos capítulos como JSON
+        COALESCE(
+          (
+            SELECT json_agg(json_build_object('numero', c.numero, 'created_at', c.created_at))
+            FROM (
+              SELECT numero, created_at
+              FROM manga_capitulos
+              WHERE manga_id = mangas.id
+              ORDER BY numero DESC
+              LIMIT 2
+            ) c
+          ), 
+          '[]'::json
+        ) AS latest_chapters,
+
+        COUNT(*) OVER() AS total_count
+      FROM
+        mangas
+      LEFT JOIN
+        manga_autores ma ON mangas.id = ma.manga_id
+      LEFT JOIN
+        manga_artistas mar ON mangas.id = mar.manga_id
+      LEFT JOIN
+        manga_generos mg ON mangas.id = mg.manga_id
+      LEFT JOIN
+        manga_capitulos mc ON mangas.id = mc.manga_id
+      GROUP BY
+        mangas.id
+      ORDER BY
+        last_chapter_at DESC NULLS LAST
+      LIMIT $1 OFFSET $2;
+    `;
+
+    const result = await pool.query(query, [ITEMS_PER_PAGE_HOME, offset]);
+    const mangas = result.rows as Manga[];
+    const totalCount = parseInt(result.rows[0]?.total_count || '0', 10);
+
+    return { mangas, totalCount };
+  } catch (error) {
+    console.error('Database Error:', error);
+    return {
+      mangas: [],
+      totalCount: 0,
+    };
+  }
+}
+
+export async function fetchTopViewedMangas(): Promise<Manga[]> {
+  try {
+    const query = `
+      SELECT 
+        mangas.id,
+        mangas.titulo,
+        mangas.slug,
+        mangas.views,
+        mangas.thumbnail,
+        mangas.adulto
+      FROM
+        mangas
+      ORDER BY
+        mangas.views DESC
+      LIMIT 10;
+    `;
+
+    const result = await pool.query(query);
+    return result.rows as Manga[];
+  } catch (error) {
+    console.error('Database Error:', error);
+    return [];
+  }
+}
+
 export async function getChaptersForManga(mangaId) {
   try {
     const result = await pool.query('SELECT * FROM manga_capitulos WHERE manga_id = $1 ORDER BY numero DESC', [mangaId]);
