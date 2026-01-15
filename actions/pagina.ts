@@ -304,3 +304,82 @@ export async function fetchPaginasByCapituloId(
       return { paginas: [], totalCount: 0, info: { numero: '?', titulo: '?' } };
     }
   }
+
+/**
+ * Busca capítulo por slug do mangá e número do capítulo (para leitura)
+ */
+export async function getChapterForReading(mangaSlug: string, numeroCapitulo: number) {
+  try {
+    const query = `
+      SELECT 
+        c.id,
+        c.manga_id,
+        c.titulo,
+        c.numero,
+        c.created_at,
+        m.titulo as manga_titulo,
+        m.slug as manga_slug
+      FROM manga_capitulos c
+      JOIN mangas m ON c.manga_id = m.id
+      WHERE m.slug = $1 AND c.numero = $2
+    `;
+    
+    const result = await pool.query(query, [mangaSlug, numeroCapitulo]);
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Erro ao buscar capítulo:', error);
+    return null;
+  }
+}
+
+/**
+ * Busca todas as páginas de um capítulo para leitura (sem paginação)
+ */
+export async function getPagesForReading(capituloId: number) {
+  try {
+    const query = `
+      SELECT id, capitulo_id, numero, url
+      FROM capitulo_paginas
+      WHERE capitulo_id = $1
+      ORDER BY numero ASC
+    `;
+    
+    const result = await pool.query(query, [capituloId]);
+    return result.rows;
+  } catch (error) {
+    console.error('Erro ao buscar páginas:', error);
+    return [];
+  }
+}
+
+/**
+ * Busca capítulos adjacentes (anterior e próximo)
+ */
+export async function getAdjacentChapters(mangaId: number, numeroAtual: number) {
+  try {
+    const query = `
+      SELECT numero
+      FROM manga_capitulos
+      WHERE manga_id = $1 AND numero < $2
+      ORDER BY numero DESC
+      LIMIT 1
+    `;
+    const prevResult = await pool.query(query, [mangaId, numeroAtual]);
+    const anterior = prevResult.rows[0]?.numero || null;
+
+    const nextQuery = `
+      SELECT numero
+      FROM manga_capitulos
+      WHERE manga_id = $1 AND numero > $2
+      ORDER BY numero ASC
+      LIMIT 1
+    `;
+    const nextResult = await pool.query(nextQuery, [mangaId, numeroAtual]);
+    const proximo = nextResult.rows[0]?.numero || null;
+
+    return { anterior, proximo };
+  } catch (error) {
+    console.error('Erro ao buscar capítulos adjacentes:', error);
+    return { anterior: null, proximo: null };
+  }
+}

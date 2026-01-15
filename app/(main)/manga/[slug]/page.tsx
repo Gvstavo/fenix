@@ -225,7 +225,7 @@ export default async function MangaPage({ params }: MangaPageProps) {
                     {chaptersWithUrls.map((chapter) => (
                         <Link 
                             key={chapter.id} 
-                            href={`/ler/${manga.slug}/${chapter.numero}`}
+                            href={`${manga.slug}/${chapter.numero}`}
                             className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors group"
                         >
                             {/* Thumbnail do Capítulo */}
