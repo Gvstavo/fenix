@@ -20,7 +20,8 @@ const isChapterNew = (dateString: string) => {
 };
 
 export default async function Home({ searchParams }: HomePageProps) {
-  const currentPage = Number(await searchParams?.page) || 1;
+  const src_ = await searchParams;
+  const currentPage = Number(src_.page) || 1;
   const { mangas, totalCount } = await fetchMangasForHome(currentPage);
   const topMangas = await fetchTopViewedMangas();
   
@@ -32,7 +33,7 @@ export default async function Home({ searchParams }: HomePageProps) {
       thumbnailUrl: manga.thumbnail ? await getPresignedUrl('mangas', manga.thumbnail) : null,
       // Processa os capítulos vindos do banco
       // O 'any' aqui é porque o tipo Manga provavelmente ainda não tem 'latest_chapters' definido na interface
-      latestChapters: (manga as any).latest_chapters?.map((cap: any) => ({
+      latestChapters: manga.latest_chapters?.map((cap) => ({
           number: cap.numero,
           isNew: isChapterNew(cap.created_at)
       })) || []
@@ -64,7 +65,7 @@ export default async function Home({ searchParams }: HomePageProps) {
           ) : (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-                {mangasWithUrls.map((manga) => (
+                {mangasWithUrls.map((manga, index) => (
                   <div key={manga.id} className="flex flex-col">
                     <Link href={`/manga/${manga.slug}`} className="group block relative">
                       {/* Card Image Wrapper */}
@@ -74,8 +75,11 @@ export default async function Home({ searchParams }: HomePageProps) {
                             src={manga.thumbnailUrl}
                             alt={manga.titulo}
                             fill
+                            priority={index < 4}
+                            loading={index < 4 ? undefined : 'lazy'}
+                            quality={85}
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                           />
                         )}
                         
@@ -100,7 +104,7 @@ export default async function Home({ searchParams }: HomePageProps) {
                         {/* Botões de Capítulos DINÂMICOS */}
                         <div className="flex flex-col gap-1.5 mt-1">
                             {manga.latestChapters.length > 0 ? (
-                                manga.latestChapters.map((chapter: any, index: number) => (
+                                manga.latestChapters.map((chapter, index: number) => (
                                     <Link 
                                         key={index}
                                         href={`/manga/${manga.slug}/${chapter.number}`} // Ajuste a rota conforme seu sistema de leitura
@@ -202,6 +206,8 @@ export default async function Home({ searchParams }: HomePageProps) {
                                 src={manga.thumbnailUrl}
                                 alt={manga.titulo}
                                 fill
+                                loading="lazy"
+                                quality={75}
                                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                                 sizes="80px"
                             />

@@ -20,7 +20,12 @@ const StyledInputBase = styled(InputBase)(({ theme }: { theme: Theme }) => ({ co
 
 
 export const HeaderClient = ({ user }) => {
-  const navItems = ['Início', 'Projetos', 'Novels', 'Concluídos'];
+  const navItems = [
+    { label: 'Início', href: '/' },
+    { label: 'Projetos', href: '/projetos' },
+    { label: 'Novels', href: '/novels' },
+    { label: 'Concluídos', href: '/concluidos' }
+  ];
   const [openModal, setOpenModal] = useState(false);
   const [loginModal, setLoginModal] = useState(false);
 
@@ -36,7 +41,14 @@ export const HeaderClient = ({ user }) => {
       >
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}><Link href="/" passHref><Image src="/logo-superior-fenix.webp" alt="Fênix Project Logo" width={180} height={50} style={{ objectFit: 'contain' }}/></Link></Box>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>{navItems.map((item) => (<Button key={item} sx={{ color: 'white', mx: 1, fontWeight: 'bold', textTransform: 'uppercase' }}>{item}</Button>))}
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>
+            {navItems.map((item) => (
+              <Link key={item.label} href={item.href} passHref style={{ textDecoration: 'none' }}>
+                <Button sx={{ color: 'white', mx: 1, fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  {item.label}
+                </Button>
+              </Link>
+            ))}
                         {user && user.admin && (
               <Link 
                 href="/admin/usuarios" 

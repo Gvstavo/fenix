@@ -80,6 +80,66 @@ export async function getMangaBySlug(slug: string) {
   }
 }
 
+export async function getMangaBySlugWithDetails(slug: string) {
+  try {
+    const query = `
+      SELECT 
+        mangas.id,
+        mangas.titulo,
+        mangas.slug,
+        mangas.views,
+        mangas.created_at,
+        mangas.updated_at,
+        mangas.sinopse,
+        mangas.ano,
+        mangas.created_by,
+        mangas.thumbnail,
+        mangas.adulto,
+        mangas.finalizado,
+        COALESCE(
+          json_agg(DISTINCT jsonb_build_object('id', autores.id, 'nome', autores.nome, 'slug', autores.slug)) 
+          FILTER (WHERE autores.id IS NOT NULL),
+          '[]'::json
+        ) AS autores,
+        COALESCE(
+          json_agg(DISTINCT jsonb_build_object('id', artistas.id, 'nome', artistas.nome, 'slug', artistas.slug)) 
+          FILTER (WHERE artistas.id IS NOT NULL),
+          '[]'::json
+        ) AS artistas,
+        COALESCE(
+          json_agg(DISTINCT jsonb_build_object('id', generos.id, 'nome', generos.nome, 'slug', generos.slug)) 
+          FILTER (WHERE generos.id IS NOT NULL),
+          '[]'::json
+        ) AS generos
+      FROM mangas
+      LEFT JOIN manga_autores ma ON mangas.id = ma.manga_id
+      LEFT JOIN autores ON ma.autor_id = autores.id
+      LEFT JOIN manga_artistas mar ON mangas.id = mar.manga_id
+      LEFT JOIN artistas ON mar.artista_id = artistas.id
+      LEFT JOIN manga_generos mg ON mangas.id = mg.manga_id
+      LEFT JOIN generos ON mg.genero_id = generos.id
+      WHERE mangas.slug = $1
+      GROUP BY mangas.id;
+    `;
+    
+    const result = await pool.query(query, [slug]);
+    const manga = result.rows[0];
+    
+    if (!manga) return null;
+    
+    // Garantir que os arrays JSON sejam parseados corretamente
+    return {
+      ...manga,
+      autores: typeof manga.autores === 'string' ? JSON.parse(manga.autores) : manga.autores,
+      artistas: typeof manga.artistas === 'string' ? JSON.parse(manga.artistas) : manga.artistas,
+      generos: typeof manga.generos === 'string' ? JSON.parse(manga.generos) : manga.generos,
+    };
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch manga details by slug.');
+  }
+}
+
 export async function fetchMangasForHome(page: number = 1): Promise<{ 
   mangas: Manga[]; 
   totalCount: number; 
